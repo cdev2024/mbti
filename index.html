@@ -156,16 +156,20 @@ async function buildShareCanvas(){
 }
 function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
 async function saveCard(){try{const c=await buildShareCanvas();const a=document.createElement('a');a.download=`${state.nickname}_${state.result.mbti}_내안에사는고양이.png`;a.href=c.toDataURL('image/png');a.click();toast('결과 카드를 저장했어요 📸')}catch(e){toast('이미지 저장 중 문제가 생겼어요')}}
+const SHARE_URL='https://cdev2024.github.io/mbti/';
 async function shareResult(){
-  const {mbti}=state.result,r=RESULTS[mbti];const text=`${state.nickname}님의 내면 고양이는 ${mbti} · ${r.title} ${r.breed}! “${r.tagline}”`;
+  const {mbti}=state.result,r=RESULTS[mbti];
+  const text=`${state.nickname}님의 내면 고양이는 ${mbti} · ${r.title} ${r.breed}! “${r.tagline}”
+
+나의 고양이 성향 테스트하기: ${SHARE_URL}`;
   try{
     const c=await buildShareCanvas();const blob=await new Promise(res=>c.toBlob(res,'image/png'));const file=new File([blob],`cat-${mbti}.png`,{type:'image/png'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({title:'내 안에 사는 고양이',text,files:[file]});return}
-    if(navigator.share){const data={title:'내 안에 사는 고양이',text};if(location.protocol!=='file:')data.url=location.href;await navigator.share(data);return}
-    const shareText=location.protocol==='file:'?text:(text+' '+location.href);await navigator.clipboard.writeText(shareText);toast('공유 문구를 복사했어요 😺');
+    if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({title:'내 안에 사는 고양이',text,url:SHARE_URL,files:[file]});return}
+    if(navigator.share){await navigator.share({title:'내 안에 사는 고양이',text,url:SHARE_URL});return}
+    await navigator.clipboard.writeText(text);toast('공유 문구와 링크를 복사했어요 😺');
   }catch(e){if(e.name!=='AbortError')toast('공유를 취소했거나 지원되지 않아요')}
 }
-async function copyLink(){if(location.protocol==='file:'){toast('웹에 배포하면 공유 링크를 복사할 수 있어요 🌐');return}try{await navigator.clipboard.writeText(location.href);toast('링크를 복사했어요 🔗')}catch(e){toast('브라우저에서 복사를 허용하지 않았어요')}}
+async function copyLink(){try{await navigator.clipboard.writeText(SHARE_URL);toast('배포 링크를 복사했어요 🔗')}catch(e){toast('브라우저에서 복사를 허용하지 않았어요')}}
 $('#startBtn').addEventListener('click',startQuiz);$('#nickname').addEventListener('keydown',e=>{if(e.key==='Enter')startQuiz()});$('#recentBtn').addEventListener('click',showRecent);$('#backBtn').addEventListener('click',goBack);$('#restartFromQuiz').addEventListener('click',resetToStart);$('#saveCardBtn').addEventListener('click',saveCard);$('#shareBtn').addEventListener('click',shareResult);$('#copyBtn').addEventListener('click',copyLink);$('#retryBtn').addEventListener('click',retry);init();
 </script>
 </body>
